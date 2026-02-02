@@ -35,6 +35,22 @@ public class SkillMentorJwtValidator implements TokenValidator {
 
         return (List<String>) getClaims(token).get("roles", List.class);
     }
+
+    @Override
+    public String extractFirstName(String token) {
+        return "";
+    }
+
+    @Override
+    public String extractLastName(String token) {
+        return "";
+    }
+
+    @Override
+    public String extractEmail(String token) {
+        return "";
+    }
+
     @Override
     public boolean validateToken(String token) {
         try {

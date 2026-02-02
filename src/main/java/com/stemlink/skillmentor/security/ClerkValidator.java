@@ -119,7 +119,38 @@ public class ClerkValidator implements TokenValidator{
         }
     }
 
+    @Override
+    public String extractFirstName(String token) {
+        try {
+            DecodedJWT decodedJWT = decodeToken(token);
+            return decodedJWT != null ? decodedJWT.getClaim("first_name").asString() : null;
+        } catch (Exception e) {
+            log.error("Error extracting first name: {}", e.getMessage());
+            return null;
+        }
+    }
 
+    @Override
+    public String extractLastName(String token) {
+        try {
+            DecodedJWT decodedJWT = decodeToken(token);
+            return decodedJWT != null ? decodedJWT.getClaim("last_name").asString() : null;
+        } catch (Exception e) {
+            log.error("Error extracting last name: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    @Override
+    public String extractEmail(String token) {
+        try {
+            DecodedJWT decodedJWT = decodeToken(token);
+            return decodedJWT != null ? decodedJWT.getClaim("email").asString() : null;
+        } catch (Exception e) {
+            log.error("Error extracting email: {}", e.getMessage());
+            return null;
+        }
+    }
 
 
 }

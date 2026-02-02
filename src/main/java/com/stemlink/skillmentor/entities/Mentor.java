@@ -18,9 +18,14 @@ import java.util.List;
 @Data
 public class Mentor {
 
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+
+    @Column(name = "mentor_id", length = 100, nullable = false)
+    private String mentorId;
 
     @Column(name = "first_name", length = 50, nullable = false)
     private String firstName;
