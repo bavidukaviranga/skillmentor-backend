@@ -1,6 +1,6 @@
 package com.stemlink.skillmentor.services.impl;
 
-import com.stemlink.skillmentor.SkillmentorApplication;
+
 import com.stemlink.skillmentor.entities.Session;
 import com.stemlink.skillmentor.entities.Student;
 import com.stemlink.skillmentor.entities.Mentor;
@@ -20,8 +20,6 @@ import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 @Service
