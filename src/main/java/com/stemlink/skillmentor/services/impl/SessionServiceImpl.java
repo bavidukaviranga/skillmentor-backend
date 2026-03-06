@@ -134,6 +134,7 @@ public class SessionServiceImpl implements SessionService {
     }
 
     public void deleteSession(Long id) {
+
         sessionRepository.deleteById(id);
     }
 

@@ -18,7 +18,7 @@ import java.util.List;
 @Data
 public class Mentor {
 
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
