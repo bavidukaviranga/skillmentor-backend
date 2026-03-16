@@ -6,6 +6,7 @@ import com.stemlink.skillmentor.security.SkillMentorAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -35,18 +36,28 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource))
-                .csrf(AbstractHttpConfigurer::disable)
+            .cors(cors -> cors.configurationSource(corsConfigurationSource))
+            .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(skillMentorAuthenticationEntryPoint)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/public/**").permitAll()
+                        .requestMatchers(
+                                "/api/public/**",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yaml",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/webjars/**",
+                                "/swagger-resources/**"
+                        ).permitAll()
+                        // Public read access to mentors from home page
+                        .requestMatchers(HttpMethod.GET, "/api/v1/mentors", "/api/v1/mentors/*").permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(clerkAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .httpBasic(AbstractHttpConfigurer::disable);
+            .addFilterBefore(clerkAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+            .httpBasic(AbstractHttpConfigurer::disable);
 
         return http.build();
     }

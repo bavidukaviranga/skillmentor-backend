@@ -4,7 +4,6 @@ import com.stemlink.skillmentor.entities.Mentor;
 import com.stemlink.skillmentor.entities.Session;
 import com.stemlink.skillmentor.entities.Student;
 import com.stemlink.skillmentor.exceptions.SkillMentorException;
-import com.stemlink.skillmentor.utils.ValidationUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;

@@ -17,19 +17,23 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+import static com.stemlink.skillmentor.constants.UserRoles.*;
+
 @RestController
 @RequestMapping(path = "/api/v1/mentors")
 @RequiredArgsConstructor
 @Validated
+//@PreAuthorize("isAuthenticated()") // Allow all authenticated users to access mentor endpoints, but specific actions are further restricted by method-level security annotations
 public class MentorController extends AbstractController {
 
     private final MentorService mentorService;
     private final ModelMapper modelMapper;
 
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Page<Mentor>> getAllMentors(Pageable pageable) {
-        Page<Mentor> mentors = mentorService.getAllMentors(pageable);
+    public ResponseEntity<Page<Mentor>> getAllMentors(
+            @RequestParam(required = false) String name,
+            Pageable pageable) {
+        Page<Mentor> mentors = mentorService.getAllMentors(name, pageable);
         return sendOkResponse(mentors);
     }
 
@@ -40,15 +44,23 @@ public class MentorController extends AbstractController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MENTOR')")
+    @PreAuthorize("hasAnyRole('" + ROLE_ADMIN + "', '" + ROLE_MENTOR + "')")
     public ResponseEntity<Mentor> createMentor(@Valid @RequestBody MentorDTO mentorDTO, Authentication authentication) {
         UserPrincipal userPrincipal = (UserPrincipal) authentication.getPrincipal();
 
         Mentor mentor = modelMapper.map(mentorDTO, Mentor.class);
-        mentor.setMentorId(userPrincipal.getId());
-        mentor.setFirstName(userPrincipal.getFirstName());
-        mentor.setLastName(userPrincipal.getLastName());
-        mentor.setEmail(userPrincipal.getEmail());
+
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+        if (!isAdmin || mentorDTO.getMentorId() == null) {
+            // MENTOR role, or ADMIN without explicit identity fields in body → use JWT claims
+            mentor.setMentorId(userPrincipal.getId());
+            mentor.setFirstName(userPrincipal.getFirstName());
+            mentor.setLastName(userPrincipal.getLastName());
+            mentor.setEmail(userPrincipal.getEmail());
+        }
+        // else: ADMIN provided mentorId (+ firstName/lastName/email) in body → ModelMapper already mapped them
 
         Mentor createdMentor = mentorService.createNewMentor(mentor);
 
@@ -56,6 +68,7 @@ public class MentorController extends AbstractController {
     }
 
     @PutMapping("{id}")
+    @PreAuthorize("hasAnyRole('" + ROLE_ADMIN + "', '" + ROLE_MENTOR + "')")
     public ResponseEntity<Mentor> updateMentor(@PathVariable Long id, @Valid @RequestBody MentorDTO updatedMentorDTO) {
         Mentor mentor = modelMapper.map(updatedMentorDTO, Mentor.class);
         Mentor updatedMentor = mentorService.updateMentorById(id, mentor);
@@ -64,6 +77,7 @@ public class MentorController extends AbstractController {
     }
 
     @DeleteMapping("{id}")
+    @PreAuthorize("hasAnyRole('" + ROLE_ADMIN + "')")
     public ResponseEntity<Mentor> deleteMentor(@PathVariable Long id) {
         mentorService.deleteMentor(id);
         return sendNoContentResponse();

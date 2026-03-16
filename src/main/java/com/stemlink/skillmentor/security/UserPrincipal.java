@@ -1,6 +1,5 @@
 package com.stemlink.skillmentor.security;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

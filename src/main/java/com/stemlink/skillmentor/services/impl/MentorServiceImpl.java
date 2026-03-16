@@ -2,15 +2,19 @@ package com.stemlink.skillmentor.services.impl;
 
 import com.stemlink.skillmentor.entities.Mentor;
 import com.stemlink.skillmentor.exceptions.SkillMentorException;
-import com.stemlink.skillmentor.repositories.MentorRepository;
+import com.stemlink.skillmentor.respositories.MentorRepository;
 import com.stemlink.skillmentor.services.MentorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+
 
 @Service
 @RequiredArgsConstructor
@@ -20,20 +24,26 @@ public class MentorServiceImpl implements MentorService {
     private final MentorRepository mentorRepository;
     private final ModelMapper modelMapper;
 
+    @CacheEvict(value = "mentors", allEntries = true)
     public Mentor createNewMentor(Mentor mentor) {
         try {
             return mentorRepository.save(mentor);
+        } catch (DataIntegrityViolationException e) {
+            log.error("Data integrity violation while creating mentor: {}", e.getMessage());
+            throw new SkillMentorException("Mentor with this email already exists", HttpStatus.CONFLICT);
         } catch (Exception exception) {
             log.error("Failed to create new mentor", exception);
-            // What, When, Where, Why
-            //System.err.println("Error creating mentor" + exception.getMessage());
-            throw new SkillMentorException("Failed to create new mentor", HttpStatus.CONFLICT);
+            throw new SkillMentorException("Failed to create new mentor", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    public Page<Mentor> getAllMentors(Pageable pageable) {
+    @Cacheable(value = "mentors", key = "(#name ?: '') + '_' + #pageable.pageNumber + '_' + #pageable.pageSize")
+    public Page<Mentor> getAllMentors(String name, Pageable pageable) {
         try {
-            log.debug("getting mentors");
+            log.debug("getting mentors with name: {}", name);
+            if (name != null && !name.isEmpty()) {
+                return mentorRepository.findByName(name, pageable);
+            }
             return mentorRepository.findAll(pageable); // SELECT * FROM mentor
         } catch (Exception exception) {
             log.error("Failed to get all mentors", exception);
@@ -42,6 +52,7 @@ public class MentorServiceImpl implements MentorService {
 
     }
 
+    @Cacheable(value = "mentors", key = "#id")
     public Mentor getMentorById(Long id) {
         try {
 
@@ -63,6 +74,7 @@ public class MentorServiceImpl implements MentorService {
         }
     }
 
+    @CacheEvict(value = "mentors", allEntries = true)
     public Mentor updateMentorById(Long id, Mentor updatedMentor) {
         try {
             Mentor mentor = mentorRepository.findById(id).orElseThrow(

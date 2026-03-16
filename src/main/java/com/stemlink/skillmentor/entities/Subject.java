@@ -7,6 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.io.Serializable;
 import java.util.Date;
 
 @Entity
@@ -14,17 +15,22 @@ import java.util.Date;
 @NoArgsConstructor
 @Table(name = "subject")
 @Data
-public class Subject {
+public class Subject implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, name = "subject_name", length = 20)
+    @Column(nullable = false, name = "subject_name", length = 255)
     private String subjectName;
 
     @Column(nullable = false)
     private String description;
+
+    @Column(name = "course_image_url")
+    private String courseImageUrl;
 
     // --------- Relationship -------------
     @ManyToOne(fetch = FetchType.LAZY)
